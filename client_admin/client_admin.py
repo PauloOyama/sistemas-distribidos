@@ -74,6 +74,83 @@ def deleteClient(port ='50051'):
                  print('Error: ' + response.description)
 
 
+def createProduct(port ='50051'):
+    
+
+        with grpc.insecure_channel('localhost:'+ port) as channel:
+            aux = {}
+            stub = base_pb2_grpc.AdminPortalStub(channel)
+            
+            cid = input('PID: ')
+            aux['PID'] = cid
+            name  = input('Name Product: ')
+            aux['name'] = name
+            name  = input('Price Product: ')
+            aux['price'] = name
+            name  = input('Quantity : ')
+            aux['quantity'] = name
+
+            response = stub.CreateProduct(base_pb2.Product(PID=cid,data=str(aux)))
+
+            if int(response.error) == 0:
+                 print('Success')
+            else:
+                 print('Error: ' + response.description)
+        
+      
+def retrieveProduct(port ='50051'):
+
+        with grpc.insecure_channel('localhost:'+ port) as channel:
+            aux = {}
+            stub = base_pb2_grpc.AdminPortalStub(channel)
+            
+            cid = input('PID: ')
+
+            response = stub.RetrieveProduct(base_pb2.ID(ID=cid))
+
+            print('Client ID: ' + response.PID)
+            print('Client Data: '+ response.data)
+
+
+def updateProduct(port ='50051'):
+    
+
+        with grpc.insecure_channel('localhost:'+ port) as channel:
+            aux = {}
+            stub = base_pb2_grpc.AdminPortalStub(channel)
+            
+            cid = input('CID: ')
+            aux['CID'] = cid
+            name  = input('Name Product: ')
+            aux['name'] = name
+            name  = input('Price Product: ')
+            aux['price'] = name
+            name  = input('Quantity : ')
+            aux['quantity'] = name
+
+            response = stub.UpdateProduct(base_pb2.Product(PID=cid,data=str(aux)))
+
+            if int(response.error) == 0:
+                 print('Success')
+            else:
+                 print('Error: ' + response.description)
+        
+      
+def deleteProduct(port ='50051'):
+
+        with grpc.insecure_channel('localhost:'+ port) as channel:
+            aux = {}
+            stub = base_pb2_grpc.AdminPortalStub(channel)
+            
+            cid = input('PID: ')
+
+            response = stub.DeleteProduct(base_pb2.ID(ID=cid))
+
+            if int(response.error) == 0:
+                 print('Success')
+            else:
+                 print('Error: ' + response.description)
+
      
 def options() -> None:
     print('#----------------------------#')
@@ -104,13 +181,13 @@ def run(port = '50051'):
             case 4:
                   deleteClient(port)
             case 5:
-                  pass
+                  createProduct(port)  
             case 6:
-                  pass
+                  retrieveProduct(port)
             case 7:
-                  pass
+                  updateProduct(port)
             case 8:
-                  pass
+                  deleteProduct(port)
         
 
 
@@ -119,4 +196,4 @@ def run(port = '50051'):
 if __name__ == '__main__':
     logging.basicConfig()
     
-    run(sys.argv[1:] if len(sys.argv[1:]) > 0 else '50051')
+    run(sys.argv[1:][0] if len(sys.argv[1:]) > 0 else '50051')
