@@ -1,5 +1,3 @@
-from __future__ import print_function
-
 import logging
 import sys
 import grpc
@@ -22,7 +20,7 @@ def createClient(port ='50051'):
             response = stub.CreateClient(base_pb2.Client(CID=cid,data=str(aux)))
 
             if int(response.error) == 0:
-                 print('Sucesso')
+                 print('Success')
             else:
                  print('Error: ' + response.description)
         
@@ -39,6 +37,41 @@ def retrieveClient(port ='50051'):
 
             print('Client ID: ' + response.CID)
             print('Client Data: '+ response.data)
+
+def updateClient(port ='50051'):
+    
+
+        with grpc.insecure_channel('localhost:'+ port) as channel:
+            aux = {}
+            stub = base_pb2_grpc.AdminPortalStub(channel)
+            
+            cid = input('CID: ')
+            aux['CID'] = cid
+            name  = input('New Client Name: ')
+            aux['name'] = name
+
+            response = stub.UpdateClient(base_pb2.Client(CID=cid,data=str(aux)))
+
+            if int(response.error) == 0:
+                 print('Success')
+            else:
+                 print('Error: ' + response.description)
+        
+      
+def deleteClient(port ='50051'):
+
+        with grpc.insecure_channel('localhost:'+ port) as channel:
+            aux = {}
+            stub = base_pb2_grpc.AdminPortalStub(channel)
+            
+            cid = input('CID: ')
+
+            response = stub.DeleteClient(base_pb2.ID(ID=cid))
+
+            if int(response.error) == 0:
+                 print('Success')
+            else:
+                 print('Error: ' + response.description)
 
 
      
@@ -66,11 +99,10 @@ def run(port = '50051'):
                   createClient(port)
             case 2:
                   retrieveClient(port)
-                  pass
             case 3:
-                  pass
+                  updateClient(port)
             case 4:
-                  pass
+                  deleteClient(port)
             case 5:
                   pass
             case 6:

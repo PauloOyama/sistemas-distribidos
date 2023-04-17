@@ -9,9 +9,14 @@ from base import base_pb2_grpc,base_pb2
 
 
 class AdminPortalServicer(base_pb2_grpc.AdminPortal):
+
     clients = {}
 
     def CreateClient(self,request,target):
+        """
+            createClient() takes and CID [request.CID], and the data of the client [request.data],
+            and add in the dictionary, if exists return error 2 and description, if not return error 0 
+        """
 
         if request.CID not in self.clients:
             self.clients[request.CID] = request.data
@@ -24,20 +29,52 @@ class AdminPortalServicer(base_pb2_grpc.AdminPortal):
 
 
     def RetrieveClient(self,request,target):
-        print("rquest " + request.ID)
+        """
+            retrieveClient() takes and CID [request.ID], and check in the dictionary if the CID exist in the keys,
+            if not return CID -1 and empty data (standard error), if it's return client
+        """
+
         if request.ID not in self.clients:
-            print('Client Doesn\'t Exist')
+            print('Client Doesn\'t Exist - Retrieve')
             return base_pb2.Client(CID='-1', data='\{\}')
         else: 
             print('Retrieve Client')
             return base_pb2.Client(CID=request.ID,data=self.clients[request.ID] )
-        pass
+        
 
     def UpdateClient(self,request,target):
-        pass
+        """
+            updateClient() takes and CID [request.CID], and the data of the client [request.data],
+            and check in the dictionary if CID exists in it, if it exists, update data and return error 0, 
+            if it not return error 2 and description. 
+        """
+
+        if request.CID not in self.clients:
+
+            print('Client Doens\'t Exist - Update')
+            return base_pb2.Reply(description=error.Error.clientNotExist, error=2)
+        else: 
+            self.clients[request.CID] = request.data
+            print('Updated Client')
+            return base_pb2.Reply(description=error.Error.noError, error=0)
+        
 
     def DeleteClient(self,request,target):
-        pass
+        """
+            deleteClient() takes and CID [request.ID], and check in the dictionary if the CID exist in the keys,
+            if it not, return error 2 and description, if it's return error 0 
+        """
+
+        if request.ID not in self.clients:
+            print('Client Doesn\'t Exist')
+            return base_pb2.Client(description=error.Error.clientNotExist, error=2)
+        else: 
+            rqt = request.ID
+            data = self.clients[request.ID] 
+            print(rqt,data)
+            del self.clients[request.ID]
+            print('Delete Client')
+            return base_pb2.Reply(description=error.Error.noError, error=0)
 
     def CreateProduct(self,request,target):
         pass
