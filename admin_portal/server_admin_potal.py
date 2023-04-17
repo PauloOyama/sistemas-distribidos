@@ -123,19 +123,19 @@ class AdminPortalServicer(base_pb2_grpc.AdminPortal):
 
     def DeleteProduct(self,request,target):
         """
-            deleteClient() takes and CID [request.ID], and check in the dictionary if the CID exist in the keys,
+            deleteProduct() takes and PID [request.ID], and check in the dictionary if the PID exist in the keys,
             if it not, return error 2 and description, if it's return error 0 
         """
 
         if request.ID not in self.products:
-            print('Client Doesn\'t Exist')
+            print('Product Doesn\'t Exist')
             return base_pb2.Reply(description=error.Error.clientNotExist, error=2)
         else: 
             rqt = request.ID
             data = self.products[request.ID] 
             print(rqt,data)
             del self.products[request.ID]
-            print('Delete Client')
+            print('Delete Product')
             return base_pb2.Reply(description=error.Error.noError, error=0)
 
 def serve(port = '50051'):
