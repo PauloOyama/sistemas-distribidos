@@ -2,16 +2,35 @@ from concurrent import futures
 import logging
 import grpc
 import sys
+import random as rd
+import time
+from common import error
 from base import base_pb2_grpc,base_pb2
 
 
 class AdminPortalServicer(base_pb2_grpc.AdminPortal):
+    clients = {}
 
     def CreateClient(self,request,target):
-        return base_pb2.Reply(description="OKSADASD", error =0)
+
+        if request.CID not in self.clients:
+            self.clients[request.CID] = request.data
+            print('Created Client')
+            return base_pb2.Reply(description=error.Error.noError, error=0)
+        else: 
+            print('Already in DataBase')
+            return base_pb2.Reply(description=error.Error.clientExist, error=2)
+            
+
 
     def RetrieveClient(self,request,target):
-   
+        print("rquest " + request.ID)
+        if request.ID not in self.clients:
+            print('Client Doesn\'t Exist')
+            return base_pb2.Client(CID='-1', data='\{\}')
+        else: 
+            print('Retrieve Client')
+            return base_pb2.Client(CID=request.ID,data=self.clients[request.ID] )
         pass
 
     def UpdateClient(self,request,target):
