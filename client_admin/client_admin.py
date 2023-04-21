@@ -86,8 +86,6 @@ def createProduct(port ='50055'):
             aux['PID'] = cid
             name  = input('Name Product: ')
             aux['name'] = name
-            name  = input('Price Product: ')
-            aux['price'] = name
             name  = input('Quantity : ')
             aux['quantity'] = name
 
@@ -120,12 +118,10 @@ def updateProduct(port ='50055'):
             aux = {}
             stub = base_pb2_grpc.AdminPortalStub(channel)
             
-            cid = input('CID: ')
-            aux['CID'] = cid
+            cid = input('PID: ')
+            aux['PID'] = cid
             name  = input('Name Product: ')
             aux['name'] = name
-            name  = input('Price Product: ')
-            aux['price'] = name
             name  = input('Quantity : ')
             aux['quantity'] = name
 

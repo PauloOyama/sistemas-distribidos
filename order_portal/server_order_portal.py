@@ -23,16 +23,35 @@ def on_message(client, userdata, msg):
             data = clients[rqt] 
             del clients[rps[1]]
             print(rqt,data)
+
         elif rps[0] == 'UPDATE':
             clients[rps[1]] = ''.join(rps[2:])
 
         elif rps[0] == 'CREATE':
             clients[rps[1]] = ''.join(rps[2:])
             print(clients)
+
         else:
             print('NOT FOUND')
     elif msg.topic == 'products':
-        pass
+
+        if rps[0] == 'DELETE':
+            rqt = rps[1]
+            data = products[rqt] 
+            del products[rps[1]]
+            print(rqt,data)
+
+        elif rps[0] == 'UPDATE':
+            products[rps[1]] = ''.join(rps[2:])
+            print('Updated Product')
+
+        elif rps[0] == 'CREATE':
+            products[rps[1]] = ''.join(rps[2:])
+            print(products)
+            print('Created Product')
+
+        else:
+            print('NOT FOUND')
 
 
 def on_connect(client, userdata, flags, rc):
@@ -81,7 +100,7 @@ class OrderPortalServicer(base_pb2_grpc.OrderPortal):
     def RetrieveClientOrders(self,request,target):
         pass
 
-def serve(    port = '50051'):
+def serve( port = '50051'):
     server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
     base_pb2_grpc.add_OrderPortalServicer_to_server(OrderPortalServicer(), server)
     server.add_insecure_port('[::]:' + port)
