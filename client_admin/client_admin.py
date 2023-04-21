@@ -4,8 +4,9 @@ import grpc
 import time
 from base import base_pb2
 from base import base_pb2_grpc
+import paho.mqtt.client as mqtt
 
-def createClient(port ='50051'):
+def createClient(port ='50055'):
     
 
         with grpc.insecure_channel('localhost:'+ port) as channel:
@@ -25,7 +26,7 @@ def createClient(port ='50051'):
                  print('Error: ' + response.description)
         
       
-def retrieveClient(port ='50051'):
+def retrieveClient(port ='50055'):
 
         with grpc.insecure_channel('localhost:'+ port) as channel:
             aux = {}
@@ -38,7 +39,7 @@ def retrieveClient(port ='50051'):
             print('Client ID: ' + response.CID)
             print('Client Data: '+ response.data)
 
-def updateClient(port ='50051'):
+def updateClient(port ='50055'):
     
 
         with grpc.insecure_channel('localhost:'+ port) as channel:
@@ -58,7 +59,7 @@ def updateClient(port ='50051'):
                  print('Error: ' + response.description)
         
       
-def deleteClient(port ='50051'):
+def deleteClient(port ='50055'):
 
         with grpc.insecure_channel('localhost:'+ port) as channel:
             aux = {}
@@ -74,7 +75,7 @@ def deleteClient(port ='50051'):
                  print('Error: ' + response.description)
 
 
-def createProduct(port ='50051'):
+def createProduct(port ='50055'):
     
 
         with grpc.insecure_channel('localhost:'+ port) as channel:
@@ -98,7 +99,7 @@ def createProduct(port ='50051'):
                  print('Error: ' + response.description)
         
       
-def retrieveProduct(port ='50051'):
+def retrieveProduct(port ='50055'):
 
         with grpc.insecure_channel('localhost:'+ port) as channel:
             aux = {}
@@ -112,7 +113,7 @@ def retrieveProduct(port ='50051'):
             print('Client Data: '+ response.data)
 
 
-def updateProduct(port ='50051'):
+def updateProduct(port ='50055'):
     
 
         with grpc.insecure_channel('localhost:'+ port) as channel:
@@ -136,7 +137,7 @@ def updateProduct(port ='50051'):
                  print('Error: ' + response.description)
         
       
-def deleteProduct(port ='50051'):
+def deleteProduct(port ='50055'):
 
         with grpc.insecure_channel('localhost:'+ port) as channel:
             aux = {}
@@ -164,7 +165,7 @@ def options() -> None:
     print('8 - Delete Product')
     print('#----------------------------#')
 
-def run(port = '50051'):
+def run(port = '50055'):
     
     while True:
         time.sleep(2)
@@ -196,4 +197,4 @@ def run(port = '50051'):
 if __name__ == '__main__':
     logging.basicConfig()
     
-    run(sys.argv[1:][0] if len(sys.argv[1:]) > 0 else '50051')
+    run(sys.argv[1:][0] if len(sys.argv[1:]) > 0 else '50055')

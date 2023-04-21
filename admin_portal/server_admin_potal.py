@@ -2,16 +2,48 @@ from concurrent import futures
 import logging
 import grpc
 import sys
-import random as rd
-import time
+import paho.mqtt.client as mqtt
 from common import error
 from base import base_pb2_grpc,base_pb2
 
 
-class AdminPortalServicer(base_pb2_grpc.AdminPortal):
+subscribers = [('clients',0), ('products',0)]
+clients = {}
+products = {}
 
-    clients = {}
-    products = {}
+
+def on_message(client, userdata, msg):
+
+    print(msg.topic+" "+str(msg.payload.decode()))
+    rps = str(msg.payload.decode()).split(' ')
+
+    if msg.topic == 'clients':
+
+        if rps[0] == 'DELETE':
+            rqt = rps[1]
+            data = clients[rqt] 
+            del clients[rps[1]]
+            print(rqt,data)
+        elif rps[0] == 'UPDATE':
+            clients[rps[1]] = ''.join(rps[2:])
+        elif rps[0] == 'CREATE':
+            clients[rps[1]] = ''.join(rps[2:])
+        else:
+            print('NOT FOUND')
+    elif msg.topic == 'products':
+        pass
+
+def on_connect(mqtt_client, userdata, flags, rc):
+    print("Connected with result code "+str(rc))
+
+    mqtt_client.subscribe(subscribers)
+
+def publish(topic, payload):
+    print('Teste')
+    mqtt_client.publish('clients','Teste')
+    # client.publish('products',"Best")
+
+class AdminPortalServicer(base_pb2_grpc.AdminPortal):
 
     def CreateClient(self,request,target):
         """
@@ -19,9 +51,15 @@ class AdminPortalServicer(base_pb2_grpc.AdminPortal):
             and add in the dictionary, if exists return error 2 and description, if not return error 0 
         """
 
-        if request.CID not in self.clients:
-            self.clients[request.CID] = request.data
-            print('Created Client')
+        if request.CID not in clients:
+
+            rps = mqtt_client.publish('clients', f'CREATE {request.CID} {request.data}')
+
+            if rps.is_published():
+                print('Created Client')
+            else:
+                print('Error sending message')
+
             return base_pb2.Reply(description=error.Error.noError, error=0)
         else: 
             print('Already in DataBase')
@@ -35,12 +73,12 @@ class AdminPortalServicer(base_pb2_grpc.AdminPortal):
             if not return CID -1 and empty data (standard error), if it's return client
         """
 
-        if request.ID not in self.clients:
+        if request.ID not in clients:
             print('Client Doesn\'t Exist - Retrieve')
             return base_pb2.Client(CID='-1', data='\{\}')
         else: 
             print('Retrieve Client')
-            return base_pb2.Client(CID=request.ID,data=self.clients[request.ID] )
+            return base_pb2.Client(CID=request.ID,data=clients[request.ID] )
         
 
     def UpdateClient(self,request,target):
@@ -50,13 +88,17 @@ class AdminPortalServicer(base_pb2_grpc.AdminPortal):
             if it not return error 2 and description. 
         """
 
-        if request.CID not in self.clients:
-
+        if request.CID not in clients:
             print('Client Doens\'t Exist - Update')
             return base_pb2.Reply(description=error.Error.clientNotExist, error=2)
         else: 
-            self.clients[request.CID] = request.data
-            print('Updated Client')
+            rps = mqtt_client.publish('clients', f'UPDATE {request.CID} {request.data}')
+
+            if rps.is_published():
+                print('Updated Client')
+            else:
+                print('Error sending message')
+
             return base_pb2.Reply(description=error.Error.noError, error=0)
         
 
@@ -66,15 +108,18 @@ class AdminPortalServicer(base_pb2_grpc.AdminPortal):
             if it not, return error 2 and description, if it's return error 0 
         """
 
-        if request.ID not in self.clients:
+        if request.ID not in clients:
             print('Client Doesn\'t Exist')
             return base_pb2.Reply(description=error.Error.clientNotExist, error=2)
         else: 
-            rqt = request.ID
-            data = self.clients[request.ID] 
-            print(rqt,data)
-            del self.clients[request.ID]
-            print('Delete Client')
+
+            rps = mqtt_client.publish('clients', f'DELETE {request.ID}')
+
+            if rps.is_published():
+                print('Deleted Client')
+            else:
+                print('Error sending message')
+                
             return base_pb2.Reply(description=error.Error.noError, error=0)
 
     def CreateProduct(self,request,target):
@@ -83,8 +128,8 @@ class AdminPortalServicer(base_pb2_grpc.AdminPortal):
             and add in the dictionary, if exists return error 2 and description, if not return error 0 
         """
 
-        if request.PID not in self.products:
-            self.products[request.PID] = request.data
+        if request.PID not in products:
+            products[request.PID] = request.data
 
             print('Created Product')
             return base_pb2.Reply(description=error.Error.noError, error=0)
@@ -97,13 +142,13 @@ class AdminPortalServicer(base_pb2_grpc.AdminPortal):
             retrieveProduct() takes a PID [request.ID], and check in the dictionary if the PID exist in the keys,
             if not return PID -1 and empty data (standard error), if it's return product
         """
-        print(self.products)
-        if request.ID not in self.products:
+        print(products)
+        if request.ID not in products:
             print('Product Doesn\'t Exist - Retrieve')
             return base_pb2.Product(PID='-1', data='\{\}')
         else: 
             print('Retrieve Product')
-            return base_pb2.Product(PID=request.ID,data=self.products[request.ID])
+            return base_pb2.Product(PID=request.ID,data=products[request.ID])
 
     def UpdateProduct(self,request,target):
         """
@@ -112,12 +157,12 @@ class AdminPortalServicer(base_pb2_grpc.AdminPortal):
             if it not return error 2 and description. 
         """
 
-        if request.PID not in self.products:
+        if request.PID not in products:
 
             print('Product Doens\'t Exist - Update')
             return base_pb2.Reply(description=error.Error.clientNotExist, error=2)
         else: 
-            self.products[request.PID] = request.data
+            products[request.PID] = request.data
             print('Updated Product')
             return base_pb2.Reply(description=error.Error.noError, error=0)
 
@@ -127,18 +172,18 @@ class AdminPortalServicer(base_pb2_grpc.AdminPortal):
             if it not, return error 2 and description, if it's return error 0 
         """
 
-        if request.ID not in self.products:
+        if request.ID not in products:
             print('Product Doesn\'t Exist')
             return base_pb2.Reply(description=error.Error.clientNotExist, error=2)
         else: 
             rqt = request.ID
-            data = self.products[request.ID] 
+            data = products[request.ID] 
             print(rqt,data)
-            del self.products[request.ID]
+            del products[request.ID]
             print('Delete Product')
             return base_pb2.Reply(description=error.Error.noError, error=0)
 
-def serve(port = '50051'):
+def serve(port = '50055'):
 
     server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
     base_pb2_grpc.add_AdminPortalServicer_to_server(AdminPortalServicer(), server)
@@ -149,5 +194,21 @@ def serve(port = '50051'):
 
 
 if __name__ == '__main__':
-    logging.basicConfig()
-    serve(sys.argv[1:][0] if len(sys.argv[1:]) > 0 else '50051')
+    try:
+        logging.basicConfig()
+
+
+        mqtt_client = mqtt.Client()
+        mqtt_client.on_connect = on_connect
+        mqtt_client.on_message = on_message
+        mqtt_client.connect("localhost", 1883)
+        mqtt_client.loop_start()
+
+
+        serve(sys.argv[1:][0] if len(sys.argv[1:]) > 0 else '50055')
+        
+        # client.loop_forever()
+
+    except:
+        print("Disconnecting...")
+        mqtt_client.disconnect()
