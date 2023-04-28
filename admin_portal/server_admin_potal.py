@@ -8,7 +8,9 @@ from base import base_pb2_grpc,base_pb2
 
 
 subscribers = [('clients',0), ('products',0)]
+# [clients] take the CID as value and the data as value
 clients = {}
+# [products] take the PID as value and the data as value
 products = {}
 
 
@@ -84,12 +86,12 @@ class AdminPortalServicer(base_pb2_grpc.AdminPortal):
     def RetrieveClient(self,request,target):
         """
             retrieveClient() takes and CID [request.ID], and check in the dictionary if the CID exist in the keys,
-            if not return CID -1 and empty data (standard error), if it's return client
+            if not return CID 0 and empty data (standard error), if it's return client
         """
 
         if request.ID not in clients:
             print('Client Doesn\'t Exist - Retrieve')
-            return base_pb2.Client(CID='-1', data='\{\}')
+            return base_pb2.Client(CID='0', data='{}')
         else: 
             print('Retrieve Client')
             return base_pb2.Client(CID=request.ID,data=clients[request.ID] )
@@ -152,12 +154,12 @@ class AdminPortalServicer(base_pb2_grpc.AdminPortal):
     def RetrieveProduct(self,request,target):
         """
             retrieveProduct() takes a PID [request.ID], and check in the dictionary if the PID exist in the keys,
-            if not return PID -1 and empty data (standard error), if it's return product
+            if not return PID 0 and empty data (standard error), if it's return product
         """
         print(products)
         if request.ID not in products:
             print('Product Doesn\'t Exist - Retrieve')
-            return base_pb2.Product(PID='-1', data='\{\}')
+            return base_pb2.Product(PID='0', data='{}')
         else: 
             print('Retrieve Product')
             return base_pb2.Product(PID=request.ID,data=products[request.ID])
@@ -204,6 +206,9 @@ def serve(port = '50055'):
 
 
 if __name__ == '__main__':
+
+    # The server and client in portal will run on port 50055 by default
+
     try:
         logging.basicConfig()
 

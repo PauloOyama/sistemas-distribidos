@@ -7,7 +7,9 @@ from base import base_pb2_grpc
 import paho.mqtt.client as mqtt
 
 def createClient(port ='50055'):
-    
+        """
+          createClient take an CID already given by the server and the name of the client
+        """
 
         with grpc.insecure_channel('localhost:'+ port) as channel:
             aux = {}
@@ -27,6 +29,9 @@ def createClient(port ='50055'):
         
       
 def retrieveClient(port ='50055'):
+        """
+          retrieveClient take an CID already given by the server return the data from a client
+        """
 
         with grpc.insecure_channel('localhost:'+ port) as channel:
             aux = {}
@@ -40,7 +45,9 @@ def retrieveClient(port ='50055'):
             print('Client Data: '+ response.data)
 
 def updateClient(port ='50055'):
-    
+        """
+          updateClient take an CID already given by the server and the name of the client to be updated
+        """    
 
         with grpc.insecure_channel('localhost:'+ port) as channel:
             aux = {}
@@ -60,7 +67,9 @@ def updateClient(port ='50055'):
         
       
 def deleteClient(port ='50055'):
-
+        """
+          deleteClient take an CID already given by the server and delete the client
+        """
         with grpc.insecure_channel('localhost:'+ port) as channel:
             aux = {}
             stub = base_pb2_grpc.AdminPortalStub(channel)
@@ -76,7 +85,10 @@ def deleteClient(port ='50055'):
 
 
 def createProduct(port ='50055'):
-    
+        """
+          createProduct take an PID already given by the server and the name of the product 
+          and the quantity of the product
+        """
 
         with grpc.insecure_channel('localhost:'+ port) as channel:
             aux = {}
@@ -86,6 +98,8 @@ def createProduct(port ='50055'):
             aux['PID'] = cid
             name  = input('Name Product: ')
             aux['name'] = name
+            name  = input('Price : ')
+            aux['price'] = name
             name  = input('Quantity : ')
             aux['quantity'] = name
 
@@ -98,7 +112,9 @@ def createProduct(port ='50055'):
         
       
 def retrieveProduct(port ='50055'):
-
+        """
+          retrieveProduct take an PID already given by the server the data from PID is returned
+        """
         with grpc.insecure_channel('localhost:'+ port) as channel:
             aux = {}
             stub = base_pb2_grpc.AdminPortalStub(channel)
@@ -112,7 +128,10 @@ def retrieveProduct(port ='50055'):
 
 
 def updateProduct(port ='50055'):
-    
+        """
+          updateProduct take an PID already given by the server and the name of the product 
+          and the quantity of the product and update the current PID
+        """
 
         with grpc.insecure_channel('localhost:'+ port) as channel:
             aux = {}
@@ -122,6 +141,8 @@ def updateProduct(port ='50055'):
             aux['PID'] = cid
             name  = input('Name Product: ')
             aux['name'] = name
+            name  = input('Price : ')
+            aux['price'] = name
             name  = input('Quantity : ')
             aux['quantity'] = name
 
@@ -134,7 +155,9 @@ def updateProduct(port ='50055'):
         
       
 def deleteProduct(port ='50055'):
-
+        """
+          deleteProduct take an PID already given by the server and delete it
+        """
         with grpc.insecure_channel('localhost:'+ port) as channel:
             aux = {}
             stub = base_pb2_grpc.AdminPortalStub(channel)
@@ -191,6 +214,9 @@ def run(port = '50055'):
 
 
 if __name__ == '__main__':
+    
+    # Client Admin run in port 50055 by default
+
     logging.basicConfig()
     
     run(sys.argv[1:][0] if len(sys.argv[1:]) > 0 else '50055')
