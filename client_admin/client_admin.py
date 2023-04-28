@@ -17,7 +17,7 @@ def createClient(port ='50055'):
             
             cid = input('CID: ')
             aux['CID'] = cid
-            name  = input('Nome do Clinte: ')
+            name  = input('Name Client: ')
             aux['name'] = name
 
             response = stub.CreateClient(base_pb2.Client(CID=cid,data=str(aux)))
@@ -123,8 +123,8 @@ def retrieveProduct(port ='50055'):
 
             response = stub.RetrieveProduct(base_pb2.ID(ID=cid))
 
-            print('Client ID: ' + response.PID)
-            print('Client Data: '+ response.data)
+            print('Product ID: ' + response.PID)
+            print('Product Data: '+ response.data)
 
 
 def updateProduct(port ='50055'):

@@ -131,11 +131,9 @@ def on_message(client, userdata, msg):
             data = ''.join(rps[3:])
 
             aux = list() if cid not in client_orders.keys() else client_orders[cid]
-
             orderParser(data)
 
             aux.append(oid)
-
             client_orders[cid] = aux
             orders_oid[oid] = order_like_lst_of_dicts
 
@@ -150,6 +148,7 @@ def on_message(client, userdata, msg):
 
             client_orders[cid].remove(oid)
             del orders_oid[oid]
+
 
 def on_connect(client, userdata, flags, rc):
     
@@ -177,6 +176,8 @@ class OrderPortalServicer(base_pb2_grpc.OrderPortal):
 
         orderParser(request.data)
         
+        #TODO
+        # rollback_qtd = int(order['quantity'])
         for order in order_like_lst_of_dicts:
             print(order)
             qtd = int(order['quantity'])
@@ -213,15 +214,17 @@ class OrderPortalServicer(base_pb2_grpc.OrderPortal):
         for x in client_orders.values():       
             lst_oids[::] = lst_oids + x
 
+        #Client doesn't exist
         if cid not in client_orders.keys():
             print('CID Not Exist')
             return base_pb2.Order(OID = '0',CID = '0',data = '{}')
+        
+        # Order doesn't exist
         elif oid not in lst_oids:
             print('OID Not Exist')
             return base_pb2.Order(OID = '0',CID = '0',data = '{}')
         else:
             aux = dict()
-
             orders = orders_oid[oid]
             
             qtd = 0
@@ -239,13 +242,67 @@ class OrderPortalServicer(base_pb2_grpc.OrderPortal):
             return base_pb2.Order(OID = str(oid),CID = str(cid),data = str(aux))
 
     def UpdateOrder(self,request,target):
-        pass
+
+        oid = request.OID
+        cid = request.CID
+
+        #IT'S A DELETE FOLLOWED BY A CREATE
+
+        #UPDATE PART
+        #Client doesn't exist
+        if cid not in clients:
+            print("CID Not Found...")
+            return base_pb2.Reply(description=error.Error.clientNotExist, error =1)
+    
+        #Order doesn't exist
+        if oid not in client_orders[cid]:
+            print("Order Not Found...")
+            return base_pb2.Reply(description=error.Error.orderNotExist, error =1)
+
+        print('UPDATE #-------------------')
+        #Refactor **TODO**
+        orders = orders_oid[oid]
+        for order in orders:
+            pid = order['PID']
+            qtd = qtd_by_product[pid] + int(order['quantity'])
+            rs = client.publish('orders', f'CHANGE {pid} {qtd}')
+            rs.wait_for_publish()
+
+        client.publish('orders', f'DELETE {oid} {cid}')
+
+        # CREATE PART 
+        orderParser(request.data)
+        
+        for order in order_like_lst_of_dicts:
+            qtd = int(order['quantity'])
+
+            #Product ID doenst exist
+            if order['PID'] not in products.keys():
+                print('Product Doens\'t exist')
+                return base_pb2.Reply(description=error.Error.productNotExist, error=1)
+            
+            #Insufficient quantity
+            elif (qtd_by_product[order['PID']] - qtd) < 0:
+                print('Can\'t update - Quantity Exceeds Limit')
+                return base_pb2.Reply(description=error.Error.messageError, error=1)
+            
+            else:
+                #Product Exist and Quantity is available
+                pid = order['PID']
+                qtd_by_product[pid] = qtd_by_product[order['PID']] - qtd
+                client.publish('orders', f'CHANGE {pid} {str(qtd_by_product[pid])}')
+
+        client.publish('orders', f'CREATE {request.OID} {request.CID} {request.data}')
+
+        return base_pb2.Reply(description=error.Error.noError, error =0)
+
 
     def DeleteOrder(self,request,target):
         
         oid = request.ID.split(':')[0]
         cid = request.ID.split(':')[1]
 
+        #Client doesn't exist
         if cid not in clients:
             print("CID Not Found...")
             return base_pb2.Reply(description=error.Error.clientNotExist, error =1)
@@ -254,22 +311,21 @@ class OrderPortalServicer(base_pb2_grpc.OrderPortal):
             print("Order Not Found...")
             return base_pb2.Reply(description=error.Error.orderNotExist, error =1)
         
-        
+        print('DELETE #-------------------')
         orders = orders_oid[oid]
         for order in orders:
+            print(order)
             pid = order['PID']
-            print(qtd_by_product[pid], int(order['quantity']))
+            print(qtd_by_product[pid])
             qtd = qtd_by_product[pid] + int(order['quantity'])
-            print('qtd ' + str(qtd))
+            print(qtd)
             rs = client.publish('orders', f'CHANGE {pid} {qtd}')
             rs.wait_for_publish()
+            print(rs.is_published())
 
         client.publish('orders', f'DELETE {oid} {cid}')
 
         return base_pb2.Reply(description=error.Error.noError, error =0)
-
-
-    
 
 
     def RetrieveClientOrders(self,request,target):

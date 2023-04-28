@@ -57,7 +57,40 @@ def RetrieveOrder(port='50051'):
 
 
 def UpdateOrder(port='50051'):
-    pass
+    order = dict()
+    
+    oid = input('Order ID: ')
+    cid = input('Client ID: ')
+
+    aux = []
+    cont = 0
+    while True:
+        aux2 = dict()
+
+        if cont == 0 :
+            opt = input('Quer fazer um pedido (y/N): ')
+        if cont > 0:             
+            opt = input('Precisa de algo a mais? (y/N): ')
+
+        if opt == 'N':
+            break
+        else:        
+            pid = input('Product ID: ')
+            aux2['PID'] = pid
+            quantities = input('Quantities: ')
+            aux2['quantity'] = quantities
+
+        aux.append(aux2)
+        cont+=1
+    
+    order['data'] = aux
+
+    with grpc.insecure_channel('localhost:'+port) as channel:
+
+        stub = base_pb2_grpc.OrderPortalStub(channel)
+        response = stub.UpdateOrder(base_pb2.Order(OID=oid,CID=cid,data=str(aux)))
+        print("Response -> " + response.description)
+
 
 def DeleteOrder(port= '50051'):
 
