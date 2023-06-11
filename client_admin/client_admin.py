@@ -4,7 +4,6 @@ import grpc
 import time
 from base import base_pb2
 from base import base_pb2_grpc
-import paho.mqtt.client as mqtt
 
 def createClient(port ='50055'):
         """
