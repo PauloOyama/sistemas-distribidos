@@ -76,84 +76,79 @@ def orderParser(data: str)-> None:
     ######                     MQTT     Functions                          ######
     ###### --------------------------------------------------------------- ######
 
-def on_message(client, userdata, msg):
-    """
-        on_message is a handler for when MQTT protocol receive a message, it'll filter the message receive
-        storaging the data the local memory
-    """
+# def on_message(client, userdata, msg):
+#     """
+#         on_message is a handler for when MQTT protocol receive a message, it'll filter the message receive
+#         storaging the data the local memory
+#     """
 
-    print(msg.topic+" "+str(msg.payload.decode()))
-    rps = str(msg.payload.decode()).split(' ')
+#     print(msg.topic+" "+str(msg.payload.decode()))
+#     rps = str(msg.payload.decode()).split(' ')
 
-    if msg.topic == 'clients':
+#     if msg.topic == 'clients':
 
-        if rps[0] == 'DELETE':
-            rqt = rps[1]
-            data = clients[rqt] 
-            del clients[rps[1]]
-            print(rqt,data)
+#         if rps[0] == 'DELETE':
+#             rqt = rps[1]
+#             data = clients[rqt] 
+#             del clients[rps[1]]
+#             print(rqt,data)
 
-        elif rps[0] == 'UPDATE':
-            clients[rps[1]] = ''.join(rps[2:])
+#         elif rps[0] == 'UPDATE':
+#             clients[rps[1]] = ''.join(rps[2:])
 
-        elif rps[0] == 'CREATE':
-            clients[rps[1]] = ''.join(rps[2:])
-            print(clients)
+#         elif rps[0] == 'CREATE':
+#             clients[rps[1]] = ''.join(rps[2:])
+#             print(clients)
 
-        else:
-            print('NOT FOUND')
+#         else:
+#             print('NOT FOUND')
 
-    elif msg.topic == 'products':
+#     elif msg.topic == 'products':
 
-        if rps[0] == 'DELETE':
-            rqt = rps[1]
-            data = products[rqt] 
-            del products[rps[1]]
-            print(rqt,data)
+#         if rps[0] == 'DELETE':
+#             rqt = rps[1]
+#             data = products[rqt] 
+#             del products[rps[1]]
+#             print(rqt,data)
 
-        elif rps[0] == 'UPDATE':
-            products[rps[1]] = ''.join(rps[2:])
-            print('Updated Product')
+#         elif rps[0] == 'UPDATE':
+#             products[rps[1]] = ''.join(rps[2:])
+#             print('Updated Product')
 
-        elif rps[0] == 'CREATE':
-            products[rps[1]] = ''.join(rps[2:])
-            productParser(products[rps[1]])
-            print('Created Product')
+#         elif rps[0] == 'CREATE':
+#             products[rps[1]] = ''.join(rps[2:])
+#             productParser(products[rps[1]])
+#             print('Created Product')
 
-        else:
-            print('NOT FOUND')
+#         else:
+#             print('NOT FOUND')
 
-    elif msg.topic == 'orders':
+#     elif msg.topic == 'orders':
 
-        if rps[0] == 'CREATE':
-            oid = rps[1]
-            cid = rps[2]
-            data = ''.join(rps[3:])
+#         if rps[0] == 'CREATE':
+#             oid = rps[1]
+#             cid = rps[2]
+#             data = ''.join(rps[3:])
 
-            aux = list() if cid not in client_orders.keys() else client_orders[cid]
-            orderParser(data)
+#             aux = list() if cid not in client_orders.keys() else client_orders[cid]
+#             orderParser(data)
 
-            aux.append(oid)
-            client_orders[cid] = aux
-            orders_oid[oid] = order_like_lst_of_dicts
+#             aux.append(oid)
+#             client_orders[cid] = aux
+#             orders_oid[oid] = order_like_lst_of_dicts
 
-        elif rps[0] == "CHANGE":
-            pid = rps[1]
-            qtd = rps[2]
-            qtd_by_product[pid] = int(qtd)
+#         elif rps[0] == "CHANGE":
+#             pid = rps[1]
+#             qtd = rps[2]
+#             qtd_by_product[pid] = int(qtd)
 
-        elif rps[0] == "DELETE":
-            oid = rps[1]
-            cid = rps[2]
+#         elif rps[0] == "DELETE":
+#             oid = rps[1]
+#             cid = rps[2]
 
-            client_orders[cid].remove(oid)
-            del orders_oid[oid]
+#             client_orders[cid].remove(oid)
+#             del orders_oid[oid]
 
-
-def on_connect(client, userdata, flags, rc):
-    
-    print("Connected with result code "+str(rc))
-    client.subscribe(subscribers)
 
 class OrderPortalServicer(base_pb2_grpc.OrderPortal):
 
@@ -195,11 +190,11 @@ class OrderPortalServicer(base_pb2_grpc.OrderPortal):
             else:
                 #Product Exist and Quantity is available
                 pid = order['PID']
-                qtd_by_product[pid] = qtd_by_product[order['PID']] - qtd
-                client.publish('orders', f'CHANGE {pid} {str(qtd_by_product[pid])}')
+        #         qtd_by_product[pid] = qtd_by_product[order['PID']] - qtd
+        #         client.publish('orders', f'CHANGE {pid} {str(qtd_by_product[pid])}')
 
         
-        client.publish('orders', f'CREATE {request.OID} {request.CID} {request.data}')
+        # client.publish('orders', f'CREATE {request.OID} {request.CID} {request.data}')
 
         return base_pb2.Reply(description=error.Error.noError, error =0)
 
@@ -265,10 +260,10 @@ class OrderPortalServicer(base_pb2_grpc.OrderPortal):
         for order in orders:
             pid = order['PID']
             qtd = qtd_by_product[pid] + int(order['quantity'])
-            rs = client.publish('orders', f'CHANGE {pid} {qtd}')
-            rs.wait_for_publish()
+            # rs = client.publish('orders', f'CHANGE {pid} {qtd}')
+            # rs.wait_for_publish()
 
-        client.publish('orders', f'DELETE {oid} {cid}')
+        # client.publish('orders', f'DELETE {oid} {cid}')
 
         # CREATE PART 
         orderParser(request.data)
@@ -290,9 +285,9 @@ class OrderPortalServicer(base_pb2_grpc.OrderPortal):
                 #Product Exist and Quantity is available
                 pid = order['PID']
                 qtd_by_product[pid] = qtd_by_product[order['PID']] - qtd
-                client.publish('orders', f'CHANGE {pid} {str(qtd_by_product[pid])}')
+        #         client.publish('orders', f'CHANGE {pid} {str(qtd_by_product[pid])}')
 
-        client.publish('orders', f'CREATE {request.OID} {request.CID} {request.data}')
+        # client.publish('orders', f'CREATE {request.OID} {request.CID} {request.data}')
 
         return base_pb2.Reply(description=error.Error.noError, error =0)
 
@@ -319,11 +314,11 @@ class OrderPortalServicer(base_pb2_grpc.OrderPortal):
             print(qtd_by_product[pid])
             qtd = qtd_by_product[pid] + int(order['quantity'])
             print(qtd)
-            rs = client.publish('orders', f'CHANGE {pid} {qtd}')
-            rs.wait_for_publish()
-            print(rs.is_published())
+            # rs = client.publish('orders', f'CHANGE {pid} {qtd}')
+            # rs.wait_for_publish()
+            # print(rs.is_published())
 
-        client.publish('orders', f'DELETE {oid} {cid}')
+        # client.publish('orders', f'DELETE {oid} {cid}')
 
         return base_pb2.Reply(description=error.Error.noError, error =0)
 
@@ -355,18 +350,11 @@ if __name__ == '__main__':
     try: 
         logging.basicConfig()
 
-        client = mqtt.Client()
-        client.on_connect = on_connect
-        client.on_message = on_message
-        client.connect("localhost", 1883)
-        client.loop_start()
+
         
         serve(sys.argv[1:][0] if len(sys.argv[1:]) > 0 else '50051')
         
     except:
         print("Disconnecting...")
-        client.loop_stop()
-        client.disconnect()
-
 
 
