@@ -105,29 +105,22 @@ class AdminPortalServicer(base_pb2_grpc.AdminPortal):
             socket = sck1
         else: 
             socket = sck2
-
-
-        if request.ID not in clients:
             
-            msg = json.dumps({'function':'read', 'key': 'C-' + str(request.ID), 'value': None})
+        msg = json.dumps({'function':'read', 'key': 'C-' + str(request.ID), 'value': None})
+        
+        socket.send(msg.encode())
+        resp = socket.recv(16480)
+        print(resp.decode())
+        aux=json.loads(resp.decode())
             
-            socket.send(msg.encode())
-            resp = socket.recv(16480)
-            print(resp.decode())
-            aux=json.loads(resp.decode())
-
-            print("INFO: ", aux)   
-               
-            if aux["data"] == None:
-                print('Client Doesn\'t Exist - Retrieve')
-                return base_pb2.Client(CID='0', data='{}')
-            else:
-                print(type(aux['data']))
-                clients[request.ID] = aux["data"]
-                return base_pb2.Client(CID=request.ID,data=json.dumps(aux["data"]))
-        else: 
-            print('Retrieve Client')
-            return base_pb2.Client(CID=request.ID,data=clients[request.ID])
+        if aux["data"] == None:
+            print('Client Doesn\'t Exist - Retrieve')
+            return base_pb2.Client(CID='0', data='{}')
+        else:
+            print(type(aux['data']))
+            clients[request.ID] = aux["data"]
+            return base_pb2.Client(CID=request.ID,data=json.dumps(aux["data"]))
+       
         
 
     def UpdateClient(self,request,target):
@@ -142,18 +135,16 @@ class AdminPortalServicer(base_pb2_grpc.AdminPortal):
         else: 
             socket = sck2
         
+        msg = json.dumps({'function':'read', 'key': 'C-' + str(request.CID), 'value': None})
         
-        if request.CID not in clients:
-            msg = json.dumps({'function':'read', 'key': 'C-' +str(request.CID), 'value': None})
+        socket.send(msg.encode())
+        resp = socket.recv(16480)
+        print(resp.decode())
+        aux=json.loads(resp.decode())
             
-            socket.send(msg.encode())
-            resp = socket.recv(16480)
-            aux=json.loads(resp.decode())
-            print(resp.decode())
-            
-            if aux['data'] == None:
-                print('Client Doens\'t Exist - Update')
-                return base_pb2.Reply(description=error.Error.clientNotExist, error=2)
+        if aux["data"] == None:
+            print('Client Doens\'t Exist - Update')
+            return base_pb2.Reply(description=error.Error.clientNotExist, error=2)
         
         msg = json.dumps({'function':'update', 'key': 'C-' +str(request.CID), 'value': request.data})
         socket.send(msg.encode())
@@ -174,25 +165,18 @@ class AdminPortalServicer(base_pb2_grpc.AdminPortal):
         else: 
             socket = sck2
         
-        #Not Locao
-        if request.ID not in clients:
-
-            msg = json.dumps({'function':'read', 'key': 'C-' + str(request.ID), 'value': None})
-            
-            socket.send(msg.encode())
-            resp = socket.recv(16480)
-            aux=json.loads(resp.decode())
-            print(resp.decode())
-            
-            #Not in BD
-            if aux['data'] == None:
-                print('Client Doesn\'t Exist')
-                return base_pb2.Reply(description=error.Error.clientNotExist, error=2)
-            
-        else:
-            del clients[request.ID]
+        msg = json.dumps({'function':'read', 'key': 'C-' + str(request.ID), 'value': None})
         
-        print(clients)
+        socket.send(msg.encode())
+        resp = socket.recv(16480)
+        print(resp.decode())
+        aux=json.loads(resp.decode())
+            
+        if aux["data"] == None:
+            print('Client Doesn\'t Exist')
+            return base_pb2.Reply(description=error.Error.clientNotExist, error=2)
+        
+        del clients[request.ID]
         msg = json.dumps({'function':'delete', 'key': 'C-' + str(request.ID), 'value': None})
         socket.send(msg.encode())
         resp = socket.recv(16480)
@@ -275,19 +259,17 @@ class AdminPortalServicer(base_pb2_grpc.AdminPortal):
         else: 
             socket = sck2
         
+        msg = json.dumps({'function':'read', 'key': 'P-' +str(request.PID), 'value': None})
         
-        if request.PID not in products:
-            msg = json.dumps({'function':'read', 'key': 'P-' +str(request.PID), 'value': None})
+        socket.send(msg.encode())
+        resp = socket.recv(16480)
+        aux=json.loads(resp.decode())
+        print(resp.decode())
             
-            socket.send(msg.encode())
-            resp = socket.recv(16480)
-            aux=json.loads(resp.decode())
-            print(resp.decode())
-            
-            if aux['data'] == None:
-                print('Product Doens\'t Exist - Update')
-                return base_pb2.Reply(description=error.Error.orderNotExist, error=2)
-        
+        if aux['data'] == None:
+            print('Product Doens\'t Exist - Update')
+            return base_pb2.Reply(description=error.Error.orderNotExist, error=2)
+
         msg = json.dumps({'function':'update', 'key': 'P-' +str(request.PID), 'value': request.data})
         socket.send(msg.encode())
         resp = socket.recv(16480)
@@ -305,25 +287,22 @@ class AdminPortalServicer(base_pb2_grpc.AdminPortal):
         else: 
             socket = sck2
         
-        #Not Locao
-        if request.ID not in products:
 
-            msg = json.dumps({'function':'read', 'key': 'P-' + str(request.ID), 'value': None})
-            
-            socket.send(msg.encode())
-            resp = socket.recv(16480)
-            aux=json.loads(resp.decode())
-            print(resp.decode())
+        msg = json.dumps({'function':'read', 'key': 'P-' + str(request.ID), 'value': None})
+        
+        socket.send(msg.encode())
+        resp = socket.recv(16480)
+        aux=json.loads(resp.decode())
+        print(resp.decode())
             
             #Not in BD
-            if aux['data'] == None:
-                print('Product Doesn\'t Exist')
-                return base_pb2.Reply(description=error.Error.orderNotExist, error=2)
+        if aux['data'] == None:
+            print('Product Doesn\'t Exist')
+            return base_pb2.Reply(description=error.Error.orderNotExist, error=2)
             
-        else:
-            del products[request.ID]
-        
+
         print(products)
+        del products[request.ID]        
         msg = json.dumps({'function':'delete', 'key': 'P-' + str(request.ID), 'value': None})
         socket.send(msg.encode())
         resp = socket.recv(16480)
